@@ -27,6 +27,5 @@ def check_for_missing_posters():
 if __name__ == '__main__':
     n = Newsletter()
 
-    titles = check_for_missing_posters()
-    n.write_config(params=titles)
-
+    missing_posters = check_for_missing_posters()
+    n.write_config(params=missing_posters)
