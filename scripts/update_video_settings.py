@@ -38,16 +38,20 @@ def get_sections_by_type():
 
 
 def add_collections(video, collections):
+    title = utils.clean_title(video.title)
+
     for collection in collections:
 
-        print(f'Adding "{video.title}" to "{collection}"')
+        print(f'Adding "{title}" to "{collection}"')
         video.addCollection(collection)
 
 
 def add_tags(video, tags):
+    title = utils.clean_title(video.title)
+
     for tag in tags:
 
-        print(f'Adding "{tag}" tag to "{video.title}"')
+        print(f'Adding "{tag}" tag to "{title}"')
         url = utils.generate_url(params={
             'base_url': f'{settings.PLEX_URL}/library/sections/{video.librarySectionID}/all?',
             'type': 1,
@@ -66,20 +70,22 @@ def rename_video(video, collections):
     elif collections == 'nominees':
         trophy = '🥈'
 
-    title = f'{trophy} {urllib.parse.quote(video.title)}'
+    title = video.title
+    if '🏆' not in title and '🥈' not in title:
+        title = f'{trophy} {urllib.parse.quote(video.title)}'
 
-    print(f'Adding "{trophy}" to "{video.title}"')
-    url = utils.generate_url(params={
-        'base_url': f'{settings.PLEX_URL}/library/sections/{video.librarySectionID}/all?',
-        'type': 1,
-        'id': video.ratingKey,
-        'includeExternalMedia': 1,
-        'title.value': title,
-        'title.locked': 1,
-        'titleSort.locked': 1,
-        'X-Plex-Token': settings.PLEX_TOKEN
-    })
-    requests.put(url)
+        print(f'Adding "{trophy}" to "{video.title}"')
+        url = utils.generate_url(params={
+            'base_url': f'{settings.PLEX_URL}/library/sections/{video.librarySectionID}/all?',
+            'type': 1,
+            'id': video.ratingKey,
+            'includeExternalMedia': 1,
+            'title.value': title,
+            'title.locked': 1,
+            'titleSort.locked': 1,
+            'X-Plex-Token': settings.PLEX_TOKEN
+        })
+        requests.put(url)
 
 
 if __name__ == '__main__':
@@ -90,7 +96,8 @@ if __name__ == '__main__':
         section = plex.library.section(section_title)
 
         for plex_video in section.all():
-            plex_video_config = section_config.get(plex_video.title, None)
+            title = utils.clean_title(plex_video.title)
+            plex_video_config = section_config.get(title, None)
 
             if plex_video_config:
 
