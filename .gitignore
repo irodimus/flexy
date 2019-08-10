@@ -96,6 +96,8 @@ pip-delete-this-directory.txt
 resources/
 config.ini
 Thumbs.db
+data/*
+settings.py
 *.db
 *.cfg
 
