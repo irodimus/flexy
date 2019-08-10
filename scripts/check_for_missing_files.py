@@ -1,9 +1,8 @@
 import os
-import yaml
 
 from datetime import date
 import settings
-from newsletter import Newsletter
+from scripts.newsletter import Newsletter
 
 today = date.today().strftime('%Y-%m-%d')
 
