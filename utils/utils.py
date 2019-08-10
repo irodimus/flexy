@@ -19,4 +19,5 @@ def generate_url(params):
     return url[:-1]
 
 
-
+def clean_title(title):
+    return title.replace('🏆 ', '').replace('🥈 ', '')
