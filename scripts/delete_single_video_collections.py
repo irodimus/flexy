@@ -1,0 +1,1 @@
+# pretty straightforward, if setting parameter is True, delete single video collections
