@@ -15,172 +15,150 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 root.addHandler(handler)
 
-base_url = settings.TRAKT_BASE_URL
 
-client_id = settings.TRAKT_CLIENT_ID
-client_secret = settings.TRAKT_CLIENT_SECRET
-redirect_uri = settings.TRAKT_REDIRECT_URI
+class TraktGroups:
 
-user_id = settings.TRAKT_DEFAULT_USER_ID
+    def __init__(self):
+        self.base_url = settings.TRAKT_BASE_URL
 
-headers = {
-    'Content-Type': 'application/json',
-    'trakt-api-key': client_id,
-    'trakt-api-version': '2'
-}
+        self.client_id = settings.TRAKT_CLIENT_ID
+        self.client_secret = settings.TRAKT_CLIENT_SECRET
+        self.redirect_uri = settings.TRAKT_REDIRECT_URI
 
+        self.user_id = settings.TRAKT_DEFAULT_USER_ID
 
-def get_response(url):
-    r = requests.get(url, headers=headers)
-    return r.json()
+        self.headers = {
+            'Content-Type': 'application/json',
+            'trakt-api-key': self.client_id,
+            'trakt-api-version': '2'
+        }
+        
+        self.execute()
 
+    def _add_to_collection_dict(self, video, title, list_name, group):
+        video_exists = video.get(title)
+        if not video_exists:
+            video[title] = {}
 
-def get_user_lists():
-    logging.info(f'Getting lists for user: {user_id}')
-    return get_response(url=f'{base_url}/users/{user_id}/lists/')
+        group_exists = video[title].get(group)
+        if not group_exists:
+            video[title][group] = []
 
+        video[title][group].append(list_name)
+        return video[title]
 
-def get_list(list_id):
-    logging.info(f"Getting list with list_id: {list_id}")
-    return get_response(url=f'{base_url}/users/{user_id}/lists/{list_id}/items/')
+    def get_response(self, url):
+        r = requests.get(url, headers=self.headers)
+        return r.json()
 
+    def get_user_lists(self):
+        logging.info(f'Getting lists for user: {self.user_id}')
+        return self.get_response(url=f'{self.base_url}/users/{self.user_id}/lists/')
 
-def generate_grouped_lists():
-    lists = get_user_lists()
+    def get_list(self, list_id):
+        logging.info(f"Getting list with list_id: {list_id}")
+        return self.get_response(url=f'{self.base_url}/users/{self.user_id}/lists/{list_id}/items/')
 
-    groups = {
-        'videos': {},
-        'people': {},
-    }
+    def generate_grouped_lists(self, lists):
+        """
+        People-based collections need to be updated differently so they get separated out.
+        """
+        groups = {
+            'videos': {},
+            'people': {},
+        }
 
-    for l in lists:
-        list_name = l['name']
-        list_id = l['ids']['trakt']
+        for l in lists:
+            list_name = l['name']
+            list_id = l['ids']['trakt']
 
-        logging.info(f'Found list: "{list_name}"')
-        if list_name.startswith('COLLECTION'):
-            logging.info(f'Adding list "{list_name}" to group "videos"')
-            groups['videos'][list_id] = list_name
+            logging.info(f'Found list: "{list_name}"')
+            if list_name.startswith('COLLECTION'):
+                logging.info(f'Adding list "{list_name}" to group "videos"')
+                groups['videos'][list_id] = list_name
 
-        elif list_name.startswith('HOLIDAY'):
-            logging.info(f'Adding list "{list_name}" to group "videos"')
-            groups['videos'][list_id] = list_name
+            elif list_name.startswith('HOLIDAY'):
+                logging.info(f'Adding list "{list_name}" to group "videos"')
+                groups['videos'][list_id] = list_name
 
-        elif list_name.startswith('WINNERS'):
-            logging.info(f'Adding list "{list_name}" to group "videos"')
-            groups['videos'][list_id] = list_name
+            elif list_name.startswith('WINNERS'):
+                logging.info(f'Adding list "{list_name}" to group "videos"')
+                groups['videos'][list_id] = list_name
 
-        elif list_name.startswith('NOMINEES'):
-            logging.info(f'Adding list "{list_name}" to group "videos"')
-            groups['videos'][list_id] = list_name
+            elif list_name.startswith('NOMINEES'):
+                logging.info(f'Adding list "{list_name}" to group "videos"')
+                groups['videos'][list_id] = list_name
 
-        elif list_name.startswith('TAG'):
-            logging.info(f'Adding list "{list_name}" to group "videos"')
-            groups['videos'][list_id] = list_name
+            elif list_name.startswith('TAG'):
+                logging.info(f'Adding list "{list_name}" to group "videos"')
+                groups['videos'][list_id] = list_name
 
-        elif list_name.startswith('PEOPLE'):
-            logging.info(f'Adding list "{list_name}" to group "people"')
-            groups['people'][list_id] = list_name
+            elif list_name.startswith('PEOPLE'):
+                logging.info(f'Adding list "{list_name}" to group "people"')
+                groups['people'][list_id] = list_name
 
-        else:
-            logging.info(f'Ignoring list "{list_name}"')
+            else:
+                logging.info(f'Ignoring list "{list_name}"')
 
+        return groups
 
-    return groups
+    def write_json(self, group, data):
+        file_path = os.path.join(settings.ROOT, 'data', f'{group}.json')
+        with open(file_path, 'w') as outfile:
+            logging.info(f'Writing to file: {file_path}')
+            json.dump(data, outfile)
 
+    def execute(self):
+        """
+        Loops through Trakt lists and adds each video to a json file with each collection, holiday, oscar status and
+        tag appropriate for the video. This makes it easier to match Plex videos for updates.
 
-def _add_to_collection_dict(video, title, list_name, group):
-    video_exists = video.get(title)
-    if not video_exists:
-        video[title] = {f'{group}': []}
+        Example:
+            {
+              {
+                "The Lord of the Rings: The Fellowship of the Ring": {
+                  "collections": ["Middle Earth"],
+                  "nominees": ["Oscars Best Picture"]
+              }, ...
+            }
+        """
+        movies = {}
+        shows = {}
 
-    group_exists = video[title].get(group)
-    if not group_exists:
-        video[title][group] = []
+        lists = self.get_user_lists()
+        groups = self.generate_grouped_lists(lists=lists)
 
-    video[title][group].append(list_name)
-    return video[title]
+        video_lists = groups['videos']
 
+        for list_id, list_name in video_lists.items():
+            list_details = self.get_list(list_id=list_id)
 
-def update_collections_group(list_data):
-    movies = {}
+            for video in list_details:
+                video_type = video['type']
+                title = video[video_type]["title"]
 
-    shows = {}
+                for trakt_tag, tag_config in settings.TRAKT_TAGS.items():
 
-    for list_id, list_name in list_data.items():
-        list_details = get_list(list_id=list_id)
+                    if trakt_tag != 'PEOPLE':
 
-        for video in list_details:
-            video_type = video['type']
-            title = video[video_type]["title"]
+                        if list_name.startswith(trakt_tag):
+                            short_list_name = list_name.replace(f'{trakt_tag} - ', '')
 
-            if video_type == 'movie':
-                movies = _add_to_collection_dict(
-                    video=movies,
-                    title=title,
-                    list_name=list_name
-                )
-            elif video_type == 'show':
-                shows = _add_to_collection_dict(
-                    video=shows,
-                    title=title,
-                    list_name=list_name
-                )
+                            if video_type == 'movie':
+                                movies[title] = self._add_to_collection_dict(
+                                    video=movies,
+                                    title=title,
+                                    list_name=short_list_name,
+                                    group=tag_config['group']
+                                )
 
-            logging.info(f'Adding "{title}" to collection group "{video_type}"')
+                            elif video_type == 'show':
+                                shows[title] = self._add_to_collection_dict(
+                                    video=shows,
+                                    title=title,
+                                    list_name=short_list_name,
+                                    group=tag_config['group']
+                                )
 
-    write_json(group='movies', data=movies)
-    write_json(group='shows', data=shows)
-
-
-def write_json(group, data):
-    file_path = os.path.join(settings.ROOT, 'data', f'{group}.json')
-    with open(file_path, 'w') as outfile:
-        logging.info(f'Writing to file: {file_path}')
-        json.dump(data, outfile)
-
-
-def groups_by_video(groups):
-    for group, list_data in groups.items():
-
-        if group in settings.COLLECTIONS:
-            logging.info(f'Working on group: {group}')
-            update_collections_group(list_data=list_data)
-
-
-if __name__ == '__main__':
-    movies = {}
-    shows = {}
-
-    groups = generate_grouped_lists()
-
-    video_lists = groups['videos']
-
-    for list_id, list_name in video_lists.items():
-        list_details = get_list(list_id=list_id)
-
-        for video in list_details:
-            video_type = video['type']
-            title = video[video_type]["title"]
-
-            for trakt_tag, tag_config in settings.TRAKT_TAGS.items():
-                if trakt_tag != 'PEOPLE':
-                    if list_name.startswith(trakt_tag):
-                        short_list_name = list_name.replace(f'{trakt_tag} - ', ''),
-                        if video_type == 'movie':
-                            movies[title] = _add_to_collection_dict(
-                                video=movies,
-                                title=title,
-                                list_name=short_list_name,
-                                group=tag_config['group']
-                            )
-                        elif video_type == 'show':
-                            shows[title] = _add_to_collection_dict(
-                                video=shows,
-                                title=title,
-                                list_name=short_list_name,
-                                group=tag_config['group']
-                            )
-
-    write_json(group='movies', data=movies)
-    write_json(group='shows', data=shows)
+        self.write_json(group='movies', data=movies)
+        self.write_json(group='shows', data=shows)
