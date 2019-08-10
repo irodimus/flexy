@@ -24,13 +24,13 @@ for plex_section in plex_sections:
             trophies = ['🏆', '🥈']
             if any(trophy in title for trophy in trophies):
 
-                print(f'Removing trophy from "{video.title}"')
+                print(f'Removing trophy from "{title}"')
                 url = utils.generate_url(params={
                     'base_url': f'{settings.PLEX_URL}/library/sections/{video.librarySectionID}/all?',
                     'type': 1,
                     'id': video.ratingKey,
                     'includeExternalMedia': 1,
-                    'title.value': title.replace('🏆 ', '').replace('🥈 ', ''),
+                    'title.value': utils.clean_title(title),
                     'title.locked': 1,
                     'titleSort.locked': 1,
                     'X-Plex-Token': settings.PLEX_TOKEN
