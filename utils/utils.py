@@ -1,16 +1,18 @@
-import json
-import os
-import requests
-import urllib.parse
 
-from plexapi.server import PlexServer
-
-import settings
-
-plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
+def get_type_id(type):
+    """
+    Used for Plex API calls. As far as I know, movies are type 1 and tv shows are type 2.
+    """
+    return {
+        'movie': 1,
+        'show': 2
+    }.get(type, None)
 
 
 def generate_url(params):
+    """
+    Concatenates parameters for Plex API call
+    """
     url = params['base_url']
     for key, value in params.items():
         if key != 'base_url':
@@ -20,4 +22,10 @@ def generate_url(params):
 
 
 def clean_title(title):
-    return title.replace('🏆 ', '').replace('🥈 ', '')
+    """
+    Removes added icons from titles so they can continue to be matched to Trakt lists.
+    """
+    icons = ['🏆', '🥈']
+    for icon in icons:
+        title = title.replace(f'{icon} ', '')
+    return title
