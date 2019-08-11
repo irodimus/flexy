@@ -153,6 +153,8 @@ def update_collection_order(collection):
         })
         requests.put(update_settings)
 
+# TODO add holiday-specific collections limitations
+
 
 def execute():
     plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
