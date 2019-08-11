@@ -132,7 +132,6 @@ def update_collection_order(collection):
 
     # by release date
     if (count <= settings.SORT_VIDEOS_BY_RELEASE_MAX_COLLECTION_LENGTH) \
-            or (settings.SORT_VIDEOS_DEFAULT.lower() == 'release date') \
             or (collection.title in settings.ALWAYS_SORT_BY_RELEASE_DATE):
         print(f'Changing collection order for "{collection.title}" to "{modes[0]}"')
         update_settings = utils.generate_url(params={
