@@ -8,8 +8,6 @@ from plexapi.server import PlexServer
 import settings
 from utils import utils
 
-plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
-
 
 def open_json(group):
     file_path = os.path.join(settings.ROOT, 'data', f'{group}.json')
@@ -18,7 +16,7 @@ def open_json(group):
     return config
 
 
-def get_sections_by_type():
+def get_sections_by_type(plex):
     sections_by_type = {
         'movies': [],
         'shows': []
@@ -89,7 +87,9 @@ def rename_video(video, collections):
 
 
 if __name__ == '__main__':
-    sections_by_type = get_sections_by_type()
+    plex = PlexServer(settingsg.PLEX_URL, settings.PLEX_TOKEN)
+
+    sections_by_type = get_sections_by_type(plex=plex)
 
     for section_title in sections_by_type['movies']:
         section_config = open_json('movies')
@@ -117,5 +117,3 @@ if __name__ == '__main__':
                 tags = plex_video_config.get('tags', None)
                 if tags:
                     add_tags(video=plex_video, tags=tags)
-
-
