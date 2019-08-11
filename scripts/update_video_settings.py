@@ -1,5 +1,3 @@
-import json
-import os
 import requests
 import urllib.parse
 
@@ -7,38 +5,6 @@ from plexapi.server import PlexServer
 
 import settings
 from utils import utils
-
-
-def open_json(group):
-    """
-    Read Trakt jsons for updates.
-    """
-    file_path = os.path.join(settings.ROOT, 'data', f'{group}.json')
-    with open(file_path, 'r') as f:
-        config = json.load(f)
-    return config
-
-
-def get_sections_by_type(plex):
-    """
-    Movies and TV Shows have slightly different attributes so they need to be processed differently.
-    """
-    sections_by_type = {
-        'movies': [],
-        'shows': []
-    }
-
-    plex_sections = plex.library.sections()
-
-    for plex_section in plex_sections:
-
-        if plex_section.type == 'movie':
-            sections_by_type['movies'].append(plex_section.title)
-
-        elif plex_section.type == 'show':
-            sections_by_type['shows'].append(plex_section.title)
-
-    return sections_by_type
 
 
 def add_collections(video, collections):
@@ -95,10 +61,10 @@ def rename_video(video, collections):
 def execute():
     plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
 
-    sections_by_type = get_sections_by_type(plex=plex)
+    sections_by_type = utils.get_sections_by_type(plex=plex)
 
     for section_title in sections_by_type['movies']:
-        section_config = open_json('movies')
+        section_config = utils.open_json('movies')
         section = plex.library.section(section_title)
 
         for plex_video in section.all():
