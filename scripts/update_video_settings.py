@@ -129,3 +129,7 @@ def execute():
                     add_tags(video=plex_video, tags=tags)
 
     # TODO add Show processing
+
+
+if __name__ == '__main__':
+    execute()
