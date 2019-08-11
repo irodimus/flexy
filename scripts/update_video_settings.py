@@ -10,6 +10,9 @@ from utils import utils
 
 
 def open_json(group):
+    """
+    Read Trakt jsons for updates.
+    """
     file_path = os.path.join(settings.ROOT, 'data', f'{group}.json')
     with open(file_path, 'r') as f:
         config = json.load(f)
@@ -17,6 +20,9 @@ def open_json(group):
 
 
 def get_sections_by_type(plex):
+    """
+    Movies and TV Shows have slightly different attributes so they need to be processed differently.
+    """
     sections_by_type = {
         'movies': [],
         'shows': []
@@ -52,7 +58,7 @@ def add_tags(video, tags):
         print(f'Adding "{tag}" tag to "{title}"')
         url = utils.generate_url(params={
             'base_url': f'{settings.PLEX_URL}/library/sections/{video.librarySectionID}/all?',
-            'type': 1,
+            'type': utils.get_type_id(type=video.type),
             'id': video.ratingKey,
             'includeExternalMedia': 1,
             'genre%5B0%5D.tag.tag': tag,
@@ -75,7 +81,7 @@ def rename_video(video, collections):
         print(f'Adding "{trophy}" to "{video.title}"')
         url = utils.generate_url(params={
             'base_url': f'{settings.PLEX_URL}/library/sections/{video.librarySectionID}/all?',
-            'type': 1,
+            'type': utils.get_type_id(type=video.type),
             'id': video.ratingKey,
             'includeExternalMedia': 1,
             'title.value': title,
@@ -86,8 +92,8 @@ def rename_video(video, collections):
         requests.put(url)
 
 
-if __name__ == '__main__':
-    plex = PlexServer(settingsg.PLEX_URL, settings.PLEX_TOKEN)
+def execute():
+    plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
 
     sections_by_type = get_sections_by_type(plex=plex)
 
@@ -105,15 +111,21 @@ if __name__ == '__main__':
                 if collections:
                     add_collections(video=plex_video, collections=collections)
 
-                winners = plex_video_config.get('winners', None)
-                if winners:
-                    rename_video(video=plex_video, collections='winners')
-                    add_tags(video=plex_video, tags=['Oscar Best Picture Winners'])
+                if settings.ADD_WINNERS_TROPHY:
+                    winners = plex_video_config.get('winners', None)
+                    if winners:
+                        rename_video(video=plex_video, collections='winners')
 
-                nominees = plex_video_config.get('nominees', None)
-                if nominees:
-                    rename_video(video=plex_video, collections='nominees')
+                        if settings.ADD_OSCAR_TAG:
+                            add_tags(video=plex_video, tags=['Oscar Best Picture Winners'])
+
+                if settings.ADD_NOMINEES_MEDAL:
+                    nominees = plex_video_config.get('nominees', None)
+                    if nominees:
+                        rename_video(video=plex_video, collections='nominees')
 
                 tags = plex_video_config.get('tags', None)
                 if tags:
                     add_tags(video=plex_video, tags=tags)
+
+    # TODO add Show processing
