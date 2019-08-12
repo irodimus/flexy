@@ -84,6 +84,9 @@ def update_collection_order(collection):
 
 # TODO add holiday-specific collections limitations
 
+# TODO add a way to change collection sort order?
+# maybe you want genre and holiday-specific collections to show up first
+
 
 def execute():
     plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)

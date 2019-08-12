@@ -141,7 +141,13 @@ def add_posters_for_new_videos(video_type, missing_posters):
     return missing_posters
 
 
-def add_posters_for_collection(missing_posters):
+# TODO is there a way to check addedAt for collections?
+def add_posters_for_collections(missing_posters):
+    """
+    Loop through all collections and upload correct poster.
+
+    Note: This script does not take into account whether or not a collection is "new", it just updates all of them.
+    """
     plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
 
     plex_sections = plex.library.sections()
@@ -160,6 +166,10 @@ def add_posters_for_collection(missing_posters):
 
     return missing_posters
 
+# TODO add_posters_for_new_posters
+# if a poster was recently added to dropbox, upload it
+# helpful if someone wants to change out a poster for a video older than one day
+
 
 if __name__ == '__main__':
     missing_posters = {
@@ -168,7 +178,7 @@ if __name__ == '__main__':
     }
 
     missing_posters = add_posters_for_new_videos(video_type='movies', missing_posters=missing_posters)
-    missing_posters = add_posters_for_collection(missing_posters=missing_posters)
+    missing_posters = add_posters_for_collections(missing_posters=missing_posters)
 
     upload_new_posters(poster_type='movies')
 

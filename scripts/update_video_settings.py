@@ -94,6 +94,8 @@ def execute():
                 if tags:
                     add_tags(video=plex_video, tags=tags)
 
+                # TODO add 4k, 8k, and 3D tags or titles suffixes
+
     # TODO add Show processing
 
 

@@ -8,8 +8,7 @@ from plexapi.server import PlexServer
 import settings
 from utils import utils
 
-# compare Trakt list with Plex collection to find missing videos
-# make sure there's a way to ignore collections, or ignore based on Trakt rating
+# TODO ignore unrelease movies
 
 
 def write_json(data):
@@ -22,7 +21,6 @@ def write_json(data):
 def execute():
     """
     Compare Trakt list with Plex collections to find missing videos.
-    Be warned: this is a long running script.
     """
     missing = {}
 

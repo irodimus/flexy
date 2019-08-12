@@ -20,8 +20,8 @@ if __name__ == '__main__':
     # Delete Single Video Collections
     delete_single_video_collections.execute()
 
-    # Other
-    # check_for_missing_collection_videos()
-
-    # upload posters
+    # Upload Posters: for individual movies and collections
     update_posters()
+
+    # Other
+    # check_for_missing_collection_videos()  # Be warned: this can be a long running script.
