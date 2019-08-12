@@ -1,0 +1,173 @@
+from datetime import datetime, timedelta
+import urllib.parse
+import xml.etree.ElementTree as ET
+import dropbox
+import re
+import requests
+import urllib.parse
+
+from plexapi.server import PlexServer
+
+import settings
+from utils import utils
+
+
+def upload_poster_via_dropbox(media_id, media_title, poster_type):
+    """
+    The Plex API call needs a link to an image so instead of storing them locally, I store them in Dropbox and use the
+    display link generated for each image. To use this, you must have a Dropbox token and have your images
+    stored in the correct folders. The image name must match the collection name, however, non-alphanumeric characters
+    are ignored for matching purposes.
+    """
+    dbx = dropbox.Dropbox(settings.DROPBOX_TOKEN)
+    contents = dbx.files_list_folder(path=f'/{poster_type.lower()}').entries
+
+    poster_file = [file for file in contents if media_title.lower() in file.name.lower()]
+
+    image_file_path = None
+    if poster_file and len(poster_file) == 1:
+        image_file_path = poster_file[0].path_display
+
+    elif len(poster_file) > 0:
+        server_modified_date = datetime(1900, 1, 1)
+
+        for file in poster_file:
+            try:
+                if file.server_modified > server_modified_date:
+                    image_file_path = file.path_display
+                    server_modified_date = file.server_modified
+
+            except AttributeError:
+                # this is probably a folder in the Dropbox folder
+                pass
+
+    if image_file_path:
+        print(f'Uploading image for "{media_title}"')
+        image_link = dbx.files_get_temporary_link(path=image_file_path).link
+
+        # need to upload the photo to Plex's database
+        upload_poster_url = utils.generate_url(params={
+            'base_url': f'{settings.PLEX_URL}/library/metadata/{media_id}/posters?',
+            'url': urllib.parse.quote(image_link),
+            'X-Plex-Token': settings.PLEX_TOKEN
+        })
+        requests.post(upload_poster_url)
+
+        # once the photo is in the database, we need to get the url
+        get_poster_url = utils.generate_url(params={
+            'base_url': f'{settings.PLEX_URL}/library/metadata/{media_id}/posters?',
+            'X-Plex-Token': settings.PLEX_TOKEN
+        })
+
+        r = requests.get(get_poster_url)
+        root = ET.fromstring(r.text)
+
+        for child in root:
+            rating_key = child.attrib['ratingKey']
+            if rating_key.startswith('upload'):
+                upload_url = rating_key
+
+        # once we have that url, we can set it as the poster
+        update_poster = utils.generate_url(params={
+            'base_url': f'{settings.PLEX_URL}/library/metadata/{media_id}/poster?',
+            'url': upload_url,
+            'X-Plex-Token': settings.PLEX_TOKEN
+        })
+        requests.put(update_poster)
+        return True
+
+    else:
+        print(f'No image for "{media_title}"')
+        return False
+
+
+def upload_new_posters(poster_type):
+    """
+    Loops through Dropbox folders for new files and uploads them if the video or collection exists.
+    """
+    dbx = dropbox.Dropbox(settings.DROPBOX_TOKEN)
+    contents = dbx.files_list_folder(path=f'/{poster_type}').entries
+
+    plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
+
+    for file in contents:
+        file_modified_at = file.client_modified
+
+        if file_modified_at >= (datetime.now() - timedelta(days=1)):
+            regex_split = re.findall(r"^(.*?)(?<=\()(?:\d{4}\|?)+(?=\))", file.name)
+            file_title = regex_split[0].replace(' (', '')
+
+            for section in plex.library.sections():
+                results = plex.library.section(section.title).search(f'{file_title}')
+
+                # there's a chance this won't return the correct video if there's more than one returned in the search
+                if results:
+                    video = results[0]
+                    poster_exists = upload_poster_via_dropbox(
+                        media_id=video.ratingKey,
+                        media_title=utils.clean_title(video.title),
+                        poster_type=section.title
+                    )
+
+
+def add_posters_for_new_videos(video_type, missing_posters):
+    """
+    Loops through Plex for newly added videos and uploads posters if they exist.
+    """
+    plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
+
+    sections_by_type = utils.get_sections_by_type(plex=plex)
+
+    for section_title in sections_by_type[video_type]:
+        section = plex.library.section(section_title)
+
+        for plex_video in section.all():
+            title = utils.clean_title(plex_video.title)
+
+            added_at = plex_video.addedAt
+
+            if added_at >= (datetime.now() - timedelta(days=1)):
+                poster_exists = upload_poster_via_dropbox(
+                    media_id=plex_video.ratingKey,
+                    media_title=title,
+                    poster_type=video_type
+                )
+
+                if not poster_exists:
+                    missing_posters['posters'].append(title)
+
+    return missing_posters
+
+
+def add_posters_for_collection(missing_posters):
+    plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
+
+    plex_sections = plex.library.sections()
+
+    for plex_section in plex_sections:
+
+        for collection in plex_section.collection():
+            poster_exists = upload_poster_via_dropbox(
+                media_id=collection.ratingKey,
+                media_title=collection.title,
+                poster_type='collections'
+            )
+
+            if not poster_exists:
+                missing_posters['posters'].append(collection.title)
+
+    return missing_posters
+
+
+if __name__ == '__main__':
+    missing_posters = {
+        'posters': [],
+        'collections': []
+    }
+
+    missing_posters = add_posters_for_new_videos(video_type='movies', missing_posters=missing_posters)
+    missing_posters = add_posters_for_collection(missing_posters=missing_posters)
+
+    upload_new_posters(poster_type='movies')
+
+    print(missing_posters)

@@ -64,7 +64,7 @@ def execute():
     sections_by_type = utils.get_sections_by_type(plex=plex)
 
     for section_title in sections_by_type['movies']:
-        section_config = utils.open_json('movies')
+        section_config = utils.open_trakt_json('movies')
         section = plex.library.section(section_title)
 
         for plex_video in section.all():
