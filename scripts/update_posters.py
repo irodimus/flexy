@@ -12,6 +12,8 @@ import settings
 from utils import utils
 
 
+# TODO upload background
+
 def upload_poster_via_dropbox(media_id, media_title, poster_type):
     """
     The Plex API call needs a link to an image so instead of storing them locally, I store them in Dropbox and use the
@@ -170,4 +172,5 @@ if __name__ == '__main__':
 
     upload_new_posters(poster_type='movies')
 
+    # TODO write missing posters to files
     print(missing_posters)
