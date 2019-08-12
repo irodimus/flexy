@@ -26,7 +26,6 @@ def get_all_show_collections():
 def execute():
     """
     Deletes all collections from movie and tv shows.
-
     """
     plex = PlexServer(settings.PLEX_URL, settings.PLEX_TOKEN)
 

@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
-import urllib.parse
-import xml.etree.ElementTree as ET
+
 import dropbox
+from plexapi.server import PlexServer
 import re
 import requests
 import urllib.parse
-
-from plexapi.server import PlexServer
+import xml.etree.ElementTree as ET
 
 import settings
 from utils import utils

@@ -54,7 +54,10 @@ def get_type_id(type):
     """
     return {
         'movie': 1,
-        'show': 2
+        'show': 2,
+        'season': 3,
+        'episode': 4,
+        'collection': 18  # tv shows
     }.get(type, None)
 
 
