@@ -8,9 +8,9 @@ def clean_title(title):
     """
     Removes added icons from titles so they can continue to be matched to Trakt lists.
     """
-    icons = ['🏆', '🥈']
-    for icon in icons:
-        title = title.replace(f'{icon} ', '')
+    extras = ['🏆 ', '🥈 ', ' (4K)', ' (8K)']
+    for extra in extras:
+        title = title.replace(f'{extra}', '')
     return title
 
 
@@ -57,7 +57,7 @@ def get_type_id(type):
         'show': 2,
         'season': 3,
         'episode': 4,
-        'collection': 18  # tv shows
+        'collection': 18
     }.get(type, None)
 
 
