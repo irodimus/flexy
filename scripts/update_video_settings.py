@@ -4,16 +4,8 @@ import settings
 from utils import utils
 
 
-def add_collections_to_movies(video, collections):
-    title = utils.clean_title(video.title)
-
-    for collection in collections:
-
-        print(f'Adding "{title}" to "{collection}"')
-        video.addCollection(collection)
-
-
 def add_collections_to_shows(video, collections):
+    # receive AttributeError: 'Show' object has no attribute 'collections' when using plexapi function
     title = utils.clean_title(video.title)
 
     for collection in collections:
@@ -26,19 +18,6 @@ def add_collections_to_shows(video, collections):
         video.edit(**edits)
 
 
-def add_tags(video, tags):
-    title = utils.clean_title(video.title)
-
-    for tag in tags:
-
-        print(f'Adding "{tag}" tag to "{title}"')
-        edits = {
-            'genre[0].tag.tag': tag,
-            'genre.locked': 1
-        }
-        video.edit(**edits)
-
-
 def add_trophy_to_video(video, collections):
     if collections == 'winners':
         trophy = '🏆'
@@ -46,6 +25,7 @@ def add_trophy_to_video(video, collections):
         trophy = '🥈'
 
     if not video.title.startswith(trophy):
+        print(f'Adding "{trophy}" to {video.title}')
         edits = {
             'title.value': f'{trophy} {video.title}',
             'title.locked': 1,
@@ -55,12 +35,17 @@ def add_trophy_to_video(video, collections):
 
 
 def add_quality(video):
-    if video.media[0].height == 2160:
-        quality = '4K'
-    elif video.media[0].height == 4320:
-        quality = '8K'
+    if not any([x in video.title for x in ['(4K)', '(8K)']]):
+        if video.media[0].height == 2160:
+            quality = '4K'
+        elif video.media[0].height == 4320:
+            quality = '8K'
+        else:
+            return
 
-    if settings.ADD_QUALITY_SUFFIX and not any([x in video.title for x in ['(4K)', '(8K)']]):
+    if settings.ADD_QUALITY_SUFFIX:
+        print(f'Adding "{quality}" suffix to "{video.title}"')
+
         edits = {
             'title.value': f'{video.title} ({quality})',
             'title.locked': 1,
@@ -69,6 +54,7 @@ def add_quality(video):
         video.edit(**edits)
 
     if settings.ADD_QUALITY_TAG:
+        print(f'Adding "{quality}" tag to "{video.title}"')
         add_tags(video=video, tags=[quality])
 
 
@@ -89,7 +75,8 @@ def execute():
 
                 collections = plex_video_config.get('collections', None)
                 if collections:
-                    add_collections_to_movies(video=plex_video, collections=collections)
+                    print(f'Adding "{title}" to {collections}')
+                    plex_video.addCollection(collections)
 
                 if settings.ADD_WINNERS_TROPHY:
                     winners = plex_video_config.get('winners', None)
@@ -97,7 +84,8 @@ def execute():
                         add_trophy_to_video(video=plex_video, collections='winners')
 
                         if settings.ADD_OSCAR_TAG:
-                            add_tags(video=plex_video, tags=['Oscar Best Picture Winners'])
+                            print(f"Adding ['Oscar Best Picture Winners'] to {plex_video.title}")
+                            plex_video.addGenre('Oscar Best Picture Winners')
 
                 if settings.ADD_NOMINEES_MEDAL:
                     nominees = plex_video_config.get('nominees', None)
@@ -106,7 +94,8 @@ def execute():
 
                 tags = plex_video_config.get('tags', None)
                 if tags:
-                    add_tags(video=plex_video, tags=tags)
+                    print(f'Adding {tags} to {plex_video.title}')
+                    plex_video.addGenre(tags)
 
             if settings.ADD_QUALITY_SUFFIX or settings.ADD_QUALITY_TAG:
                 add_quality(video=plex_video)
@@ -121,13 +110,10 @@ def execute():
 
             if plex_video_config:
 
-                collections = plex_video_config.get('collections', None)
-                if collections:
-                    add_collections_to_shows(video=plex_video, collections=collections)
-
                 tags = plex_video_config.get('tags', None)
                 if tags:
-                    add_tags(video=plex_video, tags=tags)
+                    print(f'Adding {tags} to {plex_video.title}')
+                    plex_video.addGenre(tags)
 
 
 if __name__ == '__main__':
