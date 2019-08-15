@@ -13,7 +13,7 @@ from utils import utils
 
 # TODO upload background
 
-def upload_poster_via_dropbox(media_id, media_title, poster_type):
+def upload_poster_via_dropbox(media, poster_type):
     """
     The Plex API call needs a link to an image so instead of storing them locally, I store them in Dropbox and use the
     display link generated for each image. To use this, you must have a Dropbox token and have your images
@@ -23,27 +23,26 @@ def upload_poster_via_dropbox(media_id, media_title, poster_type):
     dbx = dropbox.Dropbox(settings.DROPBOX_TOKEN)
     contents = dbx.files_list_folder(path=f'/{poster_type.lower()}').entries
 
-    poster_file = [file for file in contents if media_title.lower() in file.name.lower()]
+    media_id = media.ratingKey
+    clean_media_title = utils.clean_title(media.title).replace(':', settings.SEMICOLON_REPLACEMENT).lower()
+
+    poster_file = None
+    for file in contents:
+        if poster_type != 'collections':
+            if f'{clean_media_title} ({media.year})' in file.name.lower():
+                print(f'{clean_media_title} ({str(media.year)}) in {file.name.lower()}')
+                poster_file = file
+        else:
+            # collections don't have years
+            if clean_media_title in file.name.lower():
+                poster_file = file
 
     image_file_path = None
-    if poster_file and len(poster_file) == 1:
-        image_file_path = poster_file[0].path_display
-
-    elif len(poster_file) > 0:
-        server_modified_date = datetime(1900, 1, 1)
-
-        for file in poster_file:
-            try:
-                if file.server_modified > server_modified_date:
-                    image_file_path = file.path_display
-                    server_modified_date = file.server_modified
-
-            except AttributeError:
-                # this is probably a folder in the Dropbox folder
-                pass
+    if poster_file:
+        image_file_path = poster_file.path_display
 
     if image_file_path:
-        print(f'Uploading image for "{media_title}"')
+        print(f'Uploading image for "{media.title}"')
         image_link = dbx.files_get_temporary_link(path=image_file_path).link
 
         # need to upload the photo to Plex's database
@@ -78,7 +77,7 @@ def upload_poster_via_dropbox(media_id, media_title, poster_type):
         return True
 
     else:
-        print(f'No image for "{media_title}"')
+        print(f'No image for "{media.title}"')
         return False
 
 
@@ -105,8 +104,7 @@ def upload_new_posters(poster_type):
                 if results:
                     video = results[0]
                     poster_exists = upload_poster_via_dropbox(
-                        media_id=video.ratingKey,
-                        media_title=utils.clean_title(video.title),
+                        media=video,
                         poster_type=section.title
                     )
 
@@ -123,21 +121,21 @@ def add_posters_for_new_videos(video_type, missing_posters):
         section = plex.library.section(section_title)
 
         for plex_video in section.all():
-            title = utils.clean_title(plex_video.title)
 
-            added_at = plex_video.addedAt
-
-            if added_at >= (datetime.now() - timedelta(days=1)):
-                poster_exists = upload_poster_via_dropbox(
-                    media_id=plex_video.ratingKey,
-                    media_title=title,
-                    poster_type=video_type
-                )
-
-                if not poster_exists:
-                    missing_posters['posters'].append(title)
-
-    return missing_posters
+    #         title = utils.clean_title(plex_video.title)
+    #
+    #         added_at = plex_video.addedAt
+    #
+    #         if added_at >= (datetime.now() - timedelta(days=1)):
+    #             poster_exists = upload_poster_via_dropbox(
+    #                 media=plex_video,
+    #                 poster_type=video_type
+    #             )
+    #
+    #             if not poster_exists:
+    #                 missing_posters['posters'].append(title)
+    #
+    # return missing_posters
 
 
 # TODO is there a way to check addedAt for collections?
@@ -155,8 +153,7 @@ def add_posters_for_collections(missing_posters):
 
         for collection in plex_section.collection():
             poster_exists = upload_poster_via_dropbox(
-                media_id=collection.ratingKey,
-                media_title=collection.title,
+                media=collection,
                 poster_type='collections'
             )
 
@@ -170,16 +167,22 @@ def add_posters_for_collections(missing_posters):
 # helpful if someone wants to change out a poster for a video older than one day
 
 
-if __name__ == '__main__':
+def execute():
     missing_posters = {
         'posters': [],
         'collections': []
     }
 
     missing_posters = add_posters_for_new_videos(video_type='movies', missing_posters=missing_posters)
-    missing_posters = add_posters_for_collections(missing_posters=missing_posters)
 
-    upload_new_posters(poster_type='movies')
+
+    # missing_posters = add_posters_for_collections(missing_posters=missing_posters)
+
+    # upload_new_posters(poster_type='movies')
 
     # TODO write missing posters to files
-    print(missing_posters)
+    # print(missing_posters)
+
+
+if __name__ == '__main__':
+    execute()
