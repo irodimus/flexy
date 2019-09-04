@@ -75,7 +75,7 @@ def execute():
 
                 collections = plex_video_config.get("collections", None)
                 if collections:
-                    print("Adding '{title}' to {collections}".format(title=title, collections=collections))
+                    print("Adding '{title}' to {collections}".format(title=title, collections=", ".join(collections)))
                     plex_video.addCollection(collections)
 
                 if settings.ADD_WINNERS_TROPHY:
@@ -84,7 +84,7 @@ def execute():
                         add_trophy_to_video(video=plex_video, collections="winners")
 
                         if settings.ADD_OSCAR_TAG:
-                            print("Adding ['Oscar Best Picture Winners'] to {title}".format(title=plex_video.title))
+                            print("Adding 'Oscar Best Picture Winners' to {title}".format(title=plex_video.title))
                             plex_video.addGenre("Oscar Best Picture Winners")
 
                 if settings.ADD_NOMINEES_MEDAL:
