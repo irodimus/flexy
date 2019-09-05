@@ -76,3 +76,16 @@ def open_trakt_json(group):
         print(error)
         print("\nYou must run the create_trakt_groups.py file before using this method.")
         exit()
+
+
+def write_json(group, data):
+    root_data = os.path.join(settings.ROOT, "data")
+
+    if not os.path.exists(root_data):
+        print("Creating root 'data' file path: {root_data}".format(root_data=root_data))
+        os.makedirs(root_data)
+
+    file_path = os.path.join(root_data, "{group}.json".format(group=group))
+    with open(file_path, "w") as outfile:
+        print("Writing to file: {file_path}".format(file_path=file_path))
+        json.dump(data, outfile)

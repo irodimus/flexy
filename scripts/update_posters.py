@@ -29,8 +29,10 @@ def upload_poster_via_dropbox(media, poster_type):
     poster_file = None
     for file in contents:
         if poster_type != 'collections':
-            if f'{clean_media_title} ({media.year})' in file.name.lower():
-                print(f'{clean_media_title} ({str(media.year)}) in {file.name.lower()}')
+            title = '{title} ({year})'.format(title=clean_media_title, year=media.year)
+            if title in file.name.lower():
+                print('{title} ({year}) in {file}'.format(title=clean_media_title, year=str(media.year),
+                                                          file=file.name.lower()))
                 poster_file = file
         else:
             # collections don't have years
@@ -42,12 +44,12 @@ def upload_poster_via_dropbox(media, poster_type):
         image_file_path = poster_file.path_display
 
     if image_file_path:
-        print(f'Uploading image for "{media.title}"')
+        print('Uploading image for "{title}"'.format(title=media.title))
         image_link = dbx.files_get_temporary_link(path=image_file_path).link
 
         # need to upload the photo to Plex's database
         upload_poster_url = utils.generate_url(params={
-            'base_url': f'{settings.PLEX_URL}/library/metadata/{media_id}/posters?',
+            'base_url': '{base_url}/library/metadata/{id}/posters?'.format(base_url=settings.PLEX_URL, id=media_id),
             'url': urllib.parse.quote(image_link),
             'X-Plex-Token': settings.PLEX_TOKEN
         })
@@ -55,10 +57,9 @@ def upload_poster_via_dropbox(media, poster_type):
 
         # once the photo is in the database, we need to get the url
         get_poster_url = utils.generate_url(params={
-            'base_url': f'{settings.PLEX_URL}/library/metadata/{media_id}/posters?',
+            'base_url': '{base_url}/library/metadata/{id}/posters?'.format(base_url=settings.PLEX_URL, id=media_id),
             'X-Plex-Token': settings.PLEX_TOKEN
         })
-
         r = requests.get(get_poster_url)
         root = ET.fromstring(r.text)
 
@@ -69,7 +70,7 @@ def upload_poster_via_dropbox(media, poster_type):
 
         # once we have that url, we can set it as the poster
         update_poster = utils.generate_url(params={
-            'base_url': f'{settings.PLEX_URL}/library/metadata/{media_id}/poster?',
+            'base_url': '{base_url}/library/metadata/{id}/posters?'.format(base_url=settings.PLEX_URL, id=media_id),
             'url': upload_url,
             'X-Plex-Token': settings.PLEX_TOKEN
         })
@@ -77,7 +78,7 @@ def upload_poster_via_dropbox(media, poster_type):
         return True
 
     else:
-        print(f'No image for "{media.title}"')
+        print('No image for "{title}"'.format(title=media.title))
         return False
 
 
@@ -122,20 +123,20 @@ def add_posters_for_new_videos(video_type, missing_posters):
 
         for plex_video in section.all():
 
-    #         title = utils.clean_title(plex_video.title)
-    #
-    #         added_at = plex_video.addedAt
-    #
-    #         if added_at >= (datetime.now() - timedelta(days=1)):
-    #             poster_exists = upload_poster_via_dropbox(
-    #                 media=plex_video,
-    #                 poster_type=video_type
-    #             )
-    #
-    #             if not poster_exists:
-    #                 missing_posters['posters'].append(title)
-    #
-    # return missing_posters
+            title = utils.clean_title(plex_video.title)
+
+            added_at = plex_video.addedAt
+
+            if added_at >= (datetime.now() - timedelta(days=1)):
+                poster_exists = upload_poster_via_dropbox(
+                    media=plex_video,
+                    poster_type=video_type
+                )
+
+                if not poster_exists:
+                    missing_posters['posters'].append(title)
+
+    return missing_posters
 
 
 # TODO is there a way to check addedAt for collections?
@@ -158,13 +159,9 @@ def add_posters_for_collections(missing_posters):
             )
 
             if not poster_exists:
-                missing_posters['posters'].append(collection.title)
+                missing_posters['collections'].append(collection.title)
 
     return missing_posters
-
-# TODO add_posters_for_new_posters
-# if a poster was recently added to dropbox, upload it
-# helpful if someone wants to change out a poster for a video older than one day
 
 
 def execute():
@@ -174,14 +171,12 @@ def execute():
     }
 
     missing_posters = add_posters_for_new_videos(video_type='movies', missing_posters=missing_posters)
+    missing_posters = add_posters_for_collections(missing_posters=missing_posters)
 
-
-    # missing_posters = add_posters_for_collections(missing_posters=missing_posters)
-
-    # upload_new_posters(poster_type='movies')
+    upload_new_posters(poster_type='movies')
 
     # TODO write missing posters to files
-    # print(missing_posters)
+    utils.write_json('missing_posters', missing_posters)
 
 
 if __name__ == '__main__':

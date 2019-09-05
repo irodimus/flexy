@@ -1,7 +1,7 @@
 import settings
 import requests
-import json
-import os
+
+from utils import utils
 
 
 class TraktGroups:
@@ -95,18 +95,6 @@ class TraktGroups:
 
         return groups
 
-    def write_json(self, group, data):
-        root_data = os.path.join(settings.ROOT, "data")
-
-        if not os.path.exists(root_data):
-            print("Creating root 'data' file path: {root_data}".format(root_data=root_data))
-            os.makedirs(root_data)
-
-        file_path = os.path.join(root_data, "{group}.json".format(group=group))
-        with open(file_path, "w") as outfile:
-            print("Writing to file: {file_path}".format(file_path=file_path))
-            json.dump(data, outfile)
-
     def execute(self):
         """
         Loops through Trakt lists and adds each video to a json file with each collection, holiday, oscar status and
@@ -161,8 +149,8 @@ class TraktGroups:
 
                     # TODO add people process
 
-        self.write_json(group="movies", data=movies)
-        self.write_json(group="shows", data=shows)
+        utils.write_json(group="movies", data=movies)
+        utils.write_json(group="shows", data=shows)
 
 
 if __name__ == "__main__":
