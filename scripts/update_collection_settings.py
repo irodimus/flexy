@@ -20,10 +20,12 @@ def update_collection_mode(collection):
 
     # hide items in collection
     if (count <= settings.HIDE_VIDEOS_MAX_COLLECTION_LENGTH) or (collection.title in settings.IGNORE_COLLECTION_LENGTH):
-        print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title, mode=modes[1]))
+        expected_mode = 1
+        print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title,
+                                                                          mode=modes[expected_mode]))
         update_settings = utils.generate_url(params={
             "base_url": "{base_url}/library/metadata/{id}/prefs?".format(base_url=settings.PLEX_URL, id=rating_key),
-            "collectionMode": 1,
+            "collectionMode": expected_mode,
             "X-Plex-Token": settings.PLEX_TOKEN
         })
         requests.put(update_settings)
@@ -32,20 +34,24 @@ def update_collection_mode(collection):
     if (collection.title in settings.ALWAYS_SHOW_VIDEOS_IN_COLLECTION) \
             or (count > settings.HIDE_VIDEOS_MAX_COLLECTION_LENGTH) and (
             collection.title not in settings.IGNORE_COLLECTION_LENGTH):
-        print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title, mode=modes[2]))
+        expected_mode = 2
+        print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title,
+                                                                          mode=modes[expected_mode]))
         update_settings = utils.generate_url(params={
             "base_url": "{base_url}/library/metadata/{id}/prefs?".format(base_url=settings.PLEX_URL, id=rating_key),
-            "collectionMode": 2,
+            "collectionMode": expected_mode,
             "X-Plex-Token": settings.PLEX_TOKEN
         })
         requests.put(update_settings)
 
     # hide collection as a whole
     if collection.title in settings.ALWAYS_HIDE_COLLECTION:
-        print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title, mode=modes[0]))
+        expected_mode = 0
+        print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title,
+                                                                          mode=modes[expected_mode]))
         update_settings = utils.generate_url(params={
             "base_url": "{base_url}/library/metadata/{id}/prefs?".format(base_url=settings.PLEX_URL, id=rating_key),
-            "collectionMode": 0,
+            "collectionMode": expected_mode,
             "X-Plex-Token": settings.PLEX_TOKEN
         })
         requests.put(update_settings)
@@ -54,16 +60,18 @@ def update_collection_mode(collection):
     if collection.title in settings.HOLIDAY_COLLECTIONS:
         date_ranges = settings.HOLIDAY_COLLECTIONS[collection.title]
 
+        expected_mode = 0
         current_date = datetime.now().date()
 
         start_date = datetime.strptime(str(current_date.year) + '-' + date_ranges[0], '%Y-%m-%d').date()
         end_date = datetime.strptime(str(current_date.year) + '-' + date_ranges[1], '%Y-%m-%d').date()
 
         if not start_date <= current_date <= end_date:
-            print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title, mode=modes[0]))
+            print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title,
+                                                                              mode=modes[expected_mode]))
             update_settings = utils.generate_url(params={
                 "base_url": "{base_url}/library/metadata/{id}/prefs?".format(base_url=settings.PLEX_URL, id=rating_key),
-                "collectionMode": 0,
+                "collectionMode": expected_mode,
                 "X-Plex-Token": settings.PLEX_TOKEN
             })
             requests.put(update_settings)
@@ -110,7 +118,7 @@ def execute():
 
         for collection in plex_section.collection():
             update_collection_mode(collection=collection)
-            update_collection_order(collection=collection)
+            # update_collection_order(collection=collection)
 
 
 if __name__ == "__main__":
