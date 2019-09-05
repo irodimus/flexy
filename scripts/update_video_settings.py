@@ -99,7 +99,7 @@ def execute():
 
             if settings.ADD_QUALITY_SUFFIX or settings.ADD_QUALITY_TAG:
                 add_quality(video=plex_video)
-    #
+    
     for section_title in sections_by_type["shows"]:
         section_config = utils.open_trakt_json("shows")
         section = plex.library.section(section_title)

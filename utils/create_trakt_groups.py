@@ -134,7 +134,7 @@ class TraktGroups:
 
             for video in list_details:
                 video_type = video["type"]
-                title = video[video_type]['title']
+                title = "{title} ({year})".format(title=video[video_type]['title'], year=video[video_type]['year'])
 
                 for trakt_tag, tag_config in settings.TRAKT_TAGS.items():
 
