@@ -68,14 +68,14 @@ def execute():
         section = plex.library.section(section_title)
 
         for plex_video in section.all():
-            title = utils.clean_title(plex_video.title)
+            title = "{title} ({year})".format(title=utils.clean_title(plex_video.title), year=plex_video.year)
             plex_video_config = section_config.get(title, None)
 
             if plex_video_config:
 
                 collections = plex_video_config.get("collections", None)
                 if collections:
-                    print("Adding '{title}' to {collections}".format(title=title, collections=", ".join(collections)))
+                    print("Adding '{title}' to collection: {collections}".format(title=title, collections=", ".join(collections)))
                     plex_video.addCollection(collections)
 
                 if settings.ADD_WINNERS_TROPHY:
@@ -84,7 +84,7 @@ def execute():
                         add_trophy_to_video(video=plex_video, collections="winners")
 
                         if settings.ADD_OSCAR_TAG:
-                            print("Adding 'Oscar Best Picture Winners' to {title}".format(title=plex_video.title))
+                            print("Adding 'Oscar Best Picture Winners' tag to {title}".format(title=plex_video.title))
                             plex_video.addGenre("Oscar Best Picture Winners")
 
                 if settings.ADD_NOMINEES_MEDAL:
@@ -94,18 +94,18 @@ def execute():
 
                 tags = plex_video_config.get("tags", None)
                 if tags:
-                    print("Adding {tags} to '{title}'".format(tags=", ".join(tags), title=plex_video.title))
+                    print("Adding {tags} tag to '{title}'".format(tags=", ".join(tags), title=plex_video.title))
                     plex_video.addGenre(tags)
 
             if settings.ADD_QUALITY_SUFFIX or settings.ADD_QUALITY_TAG:
                 add_quality(video=plex_video)
-
+    #
     for section_title in sections_by_type["shows"]:
         section_config = utils.open_trakt_json("shows")
         section = plex.library.section(section_title)
 
         for plex_video in section.all():
-            title = utils.clean_title(plex_video.title)
+            title = "{title} ({year})".format(title=utils.clean_title(plex_video.title), year=plex_video.year)
             plex_video_config = section_config.get(title, None)
 
             if plex_video_config:
