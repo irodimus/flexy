@@ -5,7 +5,8 @@ from plexapi.server import PlexServer
 import settings
 from utils import utils
 
-if __name__ == "__main___":
+
+def execute():
     """
     Remove all trophies and medals from all movies.
     """
@@ -36,3 +37,7 @@ if __name__ == "__main___":
                         "X-Plex-Token": settings.PLEX_TOKEN
                     })
                     requests.put(url)
+
+
+if __name__ == "__main___":
+    execute()

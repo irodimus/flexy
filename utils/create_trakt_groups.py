@@ -48,8 +48,8 @@ class TraktGroups:
         print(f'Getting list with list_id: {list_id}'.format(list_id=list_id))
         return self.get_response(
             url="{base_url}/users/{user_id}/lists/{list_id}/items/".format(base_url=self.base_url,
-                                                                                     user_id=self.user_id,
-                                                                                     list_id=list_id))
+                                                                           user_id=self.user_id,
+                                                                           list_id=list_id))
 
     def generate_grouped_lists(self, lists):
         """

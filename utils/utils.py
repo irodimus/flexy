@@ -61,12 +61,12 @@ def get_type_id(type):
     }.get(type, None)
 
 
-def open_trakt_json(group):
+def open_trakt_json(file_name):
     """
     Read Trakt jsons for updates.
     """
     root_data = os.path.join(settings.ROOT, "data")
-    file_path = os.path.join(root_data, f"{group}.json".format(group=group))
+    file_path = os.path.join(root_data, "{file_name}.json".format(file_name=file_name))
 
     try:
         with open(file_path, "r") as f:
@@ -78,14 +78,14 @@ def open_trakt_json(group):
         exit()
 
 
-def write_json(group, data):
+def write_json(file_name, data):
     root_data = os.path.join(settings.ROOT, "data")
 
     if not os.path.exists(root_data):
         print("Creating root 'data' file path: {root_data}".format(root_data=root_data))
         os.makedirs(root_data)
 
-    file_path = os.path.join(root_data, "{group}.json".format(group=group))
+    file_path = os.path.join(root_data, "{file_name}.json".format(file_name=file_name))
     with open(file_path, "w") as outfile:
         print("Writing to file: {file_path}".format(file_path=file_path))
         json.dump(data, outfile)

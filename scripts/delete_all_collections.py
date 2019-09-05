@@ -48,7 +48,8 @@ def execute():
             for collection_id, collection_title in all_show_collections.items():
                 print("Removing collection: {title}".format(title=collection_title))
                 url = utils.generate_url(params={
-                    "base_url": "{base_url}/library/metadata/{id}?".format(base_url=settings.PLEX_URL, id=collection_id),
+                    "base_url": "{base_url}/library/metadata/{id}?".format(base_url=settings.PLEX_URL,
+                                                                           id=collection_id),
                     "X-Plex-Token": settings.PLEX_TOKEN
                 })
                 requests.delete(url)

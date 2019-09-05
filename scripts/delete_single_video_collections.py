@@ -11,7 +11,7 @@ def execute():
     for plex_section in plex_sections:
         for collection in plex_section.collection():
             if collection.childCount <= 1 and collection.title not in settings.IGNORE_SINGLE_VIDEO_COLLECTIONS:
-                print(f"Removing collection: {title}".format(title=collection.title))
+                print("Removing collection: {title}".format(title=collection.title))
                 collection.delete()
 
 

@@ -9,7 +9,6 @@ def add_collections_to_shows(video, collections):
     title = utils.clean_title(video.title)
 
     for collection in collections:
-
         print("Adding '{title}' to '{collection}'".format(title=title, collection=collection))
         edits = {
             "collection[0].tag.tag": collection,
@@ -75,7 +74,8 @@ def execute():
 
                 collections = plex_video_config.get("collections", None)
                 if collections:
-                    print("Adding '{title}' to collection: {collections}".format(title=title, collections=", ".join(collections)))
+                    print("Adding '{title}' to collection: {collections}".format(title=title,
+                                                                                 collections=", ".join(collections)))
                     plex_video.addCollection(collections)
 
                 if settings.ADD_WINNERS_TROPHY:
@@ -99,7 +99,7 @@ def execute():
 
             if settings.ADD_QUALITY_SUFFIX or settings.ADD_QUALITY_TAG:
                 add_quality(video=plex_video)
-    
+
     for section_title in sections_by_type["shows"]:
         section_config = utils.open_trakt_json("shows")
         section = plex.library.section(section_title)

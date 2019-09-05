@@ -23,12 +23,16 @@ def execute():
         for trakt_video in trakt_videos:
             all_collections = section_config[trakt_video].get("collections", None)
             if all_collections:
-                collections = [collection for collection in all_collections if collection not in settings.IGNORE_MISSING_VIDEOS]
+                collections = [collection for collection in all_collections if
+                               collection not in settings.IGNORE_MISSING_VIDEOS]
 
                 if collections:
-                    if not any(x for x in section.all() if x.title == trakt_video):
+                    if not any(x for x in section.all() if
+                               "{title} ({year})".format(title=x.title, year=x.year) == trakt_video):
+
                         for collection in collections:
-                            print("Missing '{title}' for collection '{collection}'".format(title=trakt_video, collection=collection))
+                            print("Missing '{title}' for collection '{collection}'".format(title=trakt_video,
+                                                                                           collection=collection))
                             try:
                                 missing_videos[collection].append(trakt_video)
                             except KeyError:
