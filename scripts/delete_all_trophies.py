@@ -39,5 +39,5 @@ def execute():
                     requests.put(url)
 
 
-if __name__ == "__main___":
+if __name__ == "__main__":
     execute()
