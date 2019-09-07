@@ -29,8 +29,6 @@ def upload_poster_via_dropbox(media, poster_type):
         if poster_type != "collections":
             title = "{title} ({year})".format(title=clean_media_title, year=media.year)
             if title in file.name.lower():
-                print("{title} ({year}) in {file}".format(title=clean_media_title, year=str(media.year),
-                                                          file=file.name.lower()))
                 poster_file = file
         else:
             # collections don't have years
