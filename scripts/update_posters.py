@@ -94,7 +94,7 @@ def upload_new_posters(poster_type):
     for file in contents:
         file_modified_at = file.client_modified
 
-        if file_modified_at >= (datetime.now() - timedelta(days=1)):
+        if file_modified_at >= (datetime.now() - timedelta(days=settings.DAYS_TO_CHECK)):
             regex_split = re.findall(r"^(.*?)(?<=\()(?:\d{4}\|?)+(?=\))", file.name)
             file_title = regex_split[0].replace(" (", "")
 

@@ -66,7 +66,10 @@ def update_collection_mode(collection):
         start_date = datetime.strptime(str(current_date.year) + '-' + date_ranges[0], '%Y-%m-%d').date()
         end_date = datetime.strptime(str(current_date.year) + '-' + date_ranges[1], '%Y-%m-%d').date()
 
-        if not start_date <= current_date <= end_date:
+        if settings.DELETE_OUT_OF_SEASON_COLLECTIONS:
+            print(f"Removing out of season collection: {collection.title}")
+            collection.delete()
+        elif not start_date <= current_date <= end_date:
             print("Changing collection mode for '{title}' to '{mode}'".format(title=collection.title,
                                                                               mode=modes[expected_mode]))
             update_settings = utils.generate_url(params={
@@ -75,6 +78,8 @@ def update_collection_mode(collection):
                 "X-Plex-Token": settings.PLEX_TOKEN
             })
             requests.put(update_settings)
+        else:
+            pass
 
 
 def update_collection_order(collection):
