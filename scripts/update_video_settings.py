@@ -6,6 +6,7 @@ from utils import utils
 
 def add_collections_to_shows(video, collections):
     # receive AttributeError: 'Show' object has no attribute 'collections' when using plexapi function
+    # also isn't going to check to see if the show is already added to a collection to try and avoid extra API calls
     title = utils.clean_title(video.title)
 
     for collection in collections:
@@ -74,9 +75,12 @@ def execute():
 
                 collections = plex_video_config.get("collections", None)
                 if collections:
+                    current_collections = [collection.tag for collection in plex_video.collections]
+                    new_collections = list(set(collections) - set(current_collections))
+
                     print("Adding '{title}' to collection: {collections}".format(title=title,
                                                                                  collections=", ".join(collections)))
-                    plex_video.addCollection(collections)
+                    plex_video.addCollection(new_collections)
 
                 if settings.ADD_WINNERS_TROPHY:
                     winners = plex_video_config.get("winners", None)
