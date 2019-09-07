@@ -11,8 +11,6 @@ import settings
 from utils import utils
 
 
-# TODO upload background
-
 def upload_poster_via_dropbox(media, poster_type):
     """
     The Plex API call needs a link to an image so instead of storing them locally, I store them in Dropbox and use the
@@ -139,7 +137,6 @@ def add_posters_for_new_videos(video_type, missing_posters):
     return missing_posters
 
 
-# TODO is there a way to check addedAt for collections?
 def add_posters_for_collections(missing_posters):
     """
     Loop through all collections and upload correct poster.
