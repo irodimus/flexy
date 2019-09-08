@@ -1,4 +1,8 @@
 ## Python Set Up
+Install requirements:
+```
+$ pip install -r requirements.txt
+```
 
 Before running any scripts, you will need to update your PYTHONPATH to include flexy.
 
