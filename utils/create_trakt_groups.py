@@ -1,7 +1,7 @@
 import settings
 import requests
 
-from utils import utils
+import utils
 
 
 class TraktGroups:
