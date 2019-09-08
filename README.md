@@ -19,7 +19,11 @@ After updating the file, run `source ~/.bash_profile` to update the settings.
 
 ## Flexy Set Up
 
+You'll need to set up your credentials for your plex account in `settings.py` by updating `PLEX_URL` and `PLEX_TOKEN`.
+
 ### Trakt
+
+Update the `TRAKT_DEFAULT_USER_ID` in `settings.py` to your username...unless you want to use my lists...
 
 Before running anything dealing with collections or videos, you must run: 
 ```
