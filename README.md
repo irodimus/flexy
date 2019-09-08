@@ -19,6 +19,8 @@ After updating the file, run `source ~/.bash_profile` to update the settings.
 
 ## Flexy Set Up
 
+Rename `settings-template.py` to `settings.py`.
+
 ### Trakt
 
 Before running anything dealing with collections or videos, you must run: 
