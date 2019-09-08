@@ -16,7 +16,7 @@ ModuleNotFoundError: No module named 'settings'
 
 On a Mac, you can do this by adding the following line to your `.bash_profile`.
 ```
-export PYTHONPATH=$PYTHONPATH:<path_to_flexy>y
+export PYTHONPATH=$PYTHONPATH:<path_to_flexy>
 ```
 After updating the file, run `source ~/.bash_profile` to update the settings.
 
