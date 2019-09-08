@@ -178,8 +178,8 @@ HOLIDAY_COLLECTIONS = {
 
 You also have the option of remove out-of-season collections all together by setting the 
 `DELETE_OUT_OF_SEASON_COLLECTIONS` variable to `True` in `settings.py`. Else, you can just hide the collection
-from the main view (mode 0) by setting it to `False`. If you choose, to delete the collection, it will still
-be rebuilt and available when it's in season.
+from the main view (mode 0) by setting it to `False`. If you choose to delete the collection, it will still
+be rebuilt and available when it is in season.
 
 
 #### write a JSON of movies missing from Trakt lists
@@ -188,13 +188,13 @@ $ python scripts/check_for_missing_collection_videos.py
 ```
 
 Compares your Trakt lists with your Plex library and creates a JSON of videos missing from Plex.
-Useful for finding other items to focus on collection.
+Useful for finding other items to focus on collecting.
 
 Only run if you find this information valuable as it is a time-consuming script. The `FIND_MISSING_VIDEOS` variable
-is defaulted to `False`, set to `True` if you would like to run.
+is defaulted to `False`, set to `True` if you would like it to run.
 
 If there are collections where you're not concerned about getting all of the videos, add them to `IGNORE_MISSING_VIDEOS`
-in `settings.py`.
+in `settings.py`. I use it for holiday-specific movies. I don't need all of the Christmas movies ever made.
 
 
 #### remove single video collections
