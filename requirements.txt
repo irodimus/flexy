@@ -1,0 +1,4 @@
+dropbox>=9.4.0
+PlexAPI>=3.1.0
+requests>=2.22.0
+trakt>=2.10.0
